@@ -5,7 +5,7 @@ metadata:
 {% if labels is defined %}
   labels:
 {% for k, v in labels.items() %}
-    {{ k }}: "{{ v }}"
+    {{ k }}: {{ v }}
 {% endfor %}
 {% endif %}
 roleRef:
