@@ -1,0 +1,5 @@
+---
+- include_tasks: pre_install.yaml
+
+- name: FROB Metrics
+  command: touch /222

@@ -4,10 +4,7 @@
 - name: Install Metrics
   include_tasks: "install_{{ include_file }}.yaml"
   with_items:
-    - support
-    - heapster
-    - hawkular
-    - cassandra
+    - metrics-server
   loop_control:
     loop_var: include_file
   when: not openshift_metrics_heapster_standalone | bool

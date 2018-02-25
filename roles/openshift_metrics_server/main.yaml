@@ -28,7 +28,7 @@
 - name: Create temp directory for all our templates
   file: path={{mktemp.stdout}}/templates state=directory mode=0755
   changed_when: False
-  when: openshift_metrics_install_metrics | bool
+  when: openshift_metrics_install_metrics_server | bool
 
 - name: Create temp directory local on control node
   local_action: command mktemp -d
@@ -43,16 +43,13 @@
   check_mode: no
   tags: metrics_init
 
-- include_tasks: install_metrics-server.yaml
+- include_tasks: install_metrics_server.yaml
   when:
-    - openshift_metrics_install_metrics | bool
+    - openshift_metrics_install_metrics_server | bool
 
-# - include_tasks: uninstall_metrics.yaml
-#   when:
-#     - not openshift_metrics_install_metrics | bool
-
-# - include_tasks: uninstall_hosa.yaml
-#   when: not openshift_metrics_install_hawkular_agent | bool
+- include_tasks: uninstall_metrics_server.yaml
+  when:
+    - not openshift_metrics_install_metrics_server | bool
 
 - name: Delete temp directory
   local_action: file path=local_tmp.stdout state=absent

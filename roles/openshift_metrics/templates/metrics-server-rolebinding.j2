@@ -1,13 +1,11 @@
-{% if apiVersion: is defined %}
-apiVersion: v1
-{% endif %}
+apiVersion: rbac.authorization.k8s.io/v1
 kind: {% if cluster is defined and cluster %}Cluster{% endif %}RoleBinding
 metadata:
-  name: {{obj_name}}
+  name: {{ obj_name }}
 {% if labels is defined %}
   labels:
 {% for k, v in labels.items() %}
-    {{ k }}: {{ v }}
+    {{ k }}: "{{ v }}"
 {% endfor %}
 {% endif %}
 roleRef:
@@ -15,7 +13,7 @@ roleRef:
   kind: {{ roleRef.kind }}
 {% endif %}
 {% if 'apiGroup' in roleRef %}
-  kind: {{ roleRef.apiGroup }}
+  apiGroup: {{ roleRef.apiGroup }}
 {% endif %}
   name: {{ roleRef.name }}
 subjects:
