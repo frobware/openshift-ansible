@@ -106,7 +106,7 @@
 - name: Generate service for metrics-server
   template:
     src: service.j2
-    dest: "{{ mktemp.stdout }}/templates/metrics-{{obj_name}}-svc.yaml"
+    dest: "{{ mktemp.stdout }}/templates/{{ obj_name }}-svc.yaml"
   vars:
     obj_name: metrics-server
     namespace: "{{ openshift_metrics_metrics_server_project }}"

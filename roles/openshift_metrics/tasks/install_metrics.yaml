@@ -65,6 +65,31 @@
   with_items: "{{ hawkular_agent_object_defs.results }}"
   when: openshift_metrics_install_hawkular_agent | bool
 
+- find:
+    paths: "{{ mktemp.stdout }}/templates"
+    patterns: "^metrics-server.*.yaml"
+    use_regex: true
+  register: metrics_server_object_def_files
+  when: openshift_metrics_install_metrics_server_agent | bool
+  changed_when: no
+
+- slurp:
+    src: "{{item.path}}"
+  register: metrics_server_agent_object_defs
+  with_items: "{{ metrics_server_object_def_files.files }}"
+  when: openshift_metrics_install_metrics_server_agent | bool
+  changed_when: no
+
+- name: Create Metrics_Server Agent objects
+  include_tasks: oc_apply.yaml
+  vars:
+    kubeconfig: "{{ mktemp.stdout }}/admin.kubeconfig"
+    namespace: "{{ openshift_metrics_metrics_server_agent_namespace }}"
+    file_name: "{{ item.source }}"
+    file_content: "{{ item.content | b64decode | from_yaml }}"
+  with_items: "{{ metrics_server_agent_object_defs.results }}"
+  when: openshift_metrics_install_metrics_server_agent | bool
+
 - include_tasks: update_master_config.yaml
   when: not openshift.common.version_gte_3_9
 
