@@ -4,18 +4,19 @@
 - name: Install Metrics
   include_tasks: "install_{{ include_file }}.yaml"
   with_items:
+    - support
     - metrics-server
   loop_control:
     loop_var: include_file
   when: not openshift_metrics_heapster_standalone | bool
 
-- name: Install Heapster Standalone
-  include_tasks: install_heapster.yaml
-  when: openshift_metrics_heapster_standalone | bool
+# - name: Install Heapster Standalone
+#   include_tasks: install_heapster.yaml
+#   when: openshift_metrics_heapster_standalone | bool
 
-- name: Install Hawkular OpenShift Agent (HOSA)
-  include_tasks: install_hosa.yaml
-  when: openshift_metrics_install_hawkular_agent | default(false) | bool
+# - name: Install Hawkular OpenShift Agent (HOSA)
+#   include_tasks: install_hosa.yaml
+#   when: openshift_metrics_install_hawkular_agent | default(false) | bool
 
 - find:
     paths: "{{ mktemp.stdout }}/templates"

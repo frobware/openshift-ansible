@@ -3,7 +3,14 @@
   include_tasks: setup_certificate.yaml
   vars:
     component: metrics-server
-    hostnames: "metrics-server,metrics-server.{{ openshift_metrics_project }}.svc.cluster.local,{{ openshift_metrics_metrics-server_hostname }}"
+    hostnames: "metrics-server,metrics-server.{{ openshift_metrics_metrics_server_project }}.svc.cluster.local,{{ openshift_metrics_metrics_server_hostname }}"
+  changed_when: no
+
+- name: generate metrics-server-cassandra certificates
+  include_tasks: setup_certificate.yaml
+  vars:
+    component: metrics-server-cassandra
+    hostnames: metrics-server-cassandra
   changed_when: no
 
 - name: generate password for metrics-server metrics
@@ -13,12 +20,12 @@
   become: false
 
 - local_action: slurp src="{{ local_tmp.stdout }}/metrics-server.pwd"
-  register: metrics-server_metrics_pwd
+  register: metrics_server_metrics_pwd
   no_log: true
   become: false
 
 - name: generate htpasswd file for metrics-server metrics
-  local_action: htpasswd path="{{ local_tmp.stdout }}/metrics-server.htpasswd" name=metrics-server password="{{ metrics-server_metrics_pwd.content | b64decode }}"
+  local_action: htpasswd path="{{ local_tmp.stdout }}/metrics-server.htpasswd" name=metrics-server password="{{ metrics_server_metrics_pwd.content | b64decode }}"
   become: false
 
 - name: copy local generated passwords to target
@@ -33,7 +40,7 @@
   shell: >
     printf '%s: ' '{{ item }}'
     && base64 --wrap 0 '{{ mktemp.stdout }}/{{ item }}'
-  register: metrics-server_secrets
+  register: metrics_server_secrets
   with_items:
   - ca.crt
   - metrics-server.pwd
@@ -47,8 +54,8 @@
   changed_when: false
 
 - set_fact:
-    metrics-server_secrets: |
-      {{ metrics-server_secrets.results|map(attribute='stdout')|join('
+    metrics_server_secrets: |
+      {{ metrics_server_secrets.results|map(attribute='stdout')|join('
       ')|from_yaml }}
 
 - name: generate metrics-server-certs secret template
@@ -63,13 +70,13 @@
       service.alpha.openshift.io/originating-service-name: metrics-server
     data:
       tls.crt: >
-        {{ metrics-server_secrets['metrics-server.crt'] }}
+        {{ metrics_server_secrets['metrics-server.crt'] }}
       tls.key: >
-        {{ metrics-server_secrets['metrics-server.key'] }}
+        {{ metrics_server_secrets['metrics-server.key'] }}
       tls.truststore.crt: >
-        {{ metrics-server_secrets['metrics-server-cassandra.crt'] }}
+        {{ metrics_server_secrets['metrics-server-cassandra.crt'] }}
       ca.crt: >
-        {{ metrics-server_secrets['ca.crt'] }}
+        {{ metrics_server_secrets['ca.crt'] }}
   when: name not in metrics_secrets.stdout_lines
   changed_when: no
 
@@ -83,9 +90,9 @@
       metrics-infra: metrics-server
     data:
       metrics-server.username: "{{ 'metrics-server'|b64encode }}"
-      metrics-server.htpasswd: "{{ metrics-server_secrets['metrics-server.htpasswd'] }}"
+      metrics-server.htpasswd: "{{ metrics_server_secrets['metrics-server.htpasswd'] }}"
       metrics-server.password: >
-        {{ metrics-server_secrets['metrics-server.pwd'] }}
+        {{ metrics_server_secrets['metrics-server.pwd'] }}
   when: name not in metrics_secrets.stdout_lines
   changed_when: no
 
@@ -101,12 +108,12 @@
       service.alpha.openshift.io/originating-service-name: metrics-server-cassandra
     data:
       tls.crt: >
-        {{ metrics-server_secrets['metrics-server-cassandra.crt'] }}
+        {{ metrics_server_secrets['metrics-server-cassandra.crt'] }}
       tls.key: >
-        {{ metrics-server_secrets['metrics-server-cassandra.key'] }}
+        {{ metrics_server_secrets['metrics-server-cassandra.key'] }}
       tls.peer.truststore.crt: >
-        {{ metrics-server_secrets['metrics-server-cassandra.crt'] }}
+        {{ metrics_server_secrets['metrics-server-cassandra.crt'] }}
       tls.client.truststore.crt: >
-        {{ metrics-server_secrets['metrics-server.crt'] }}
+        {{ metrics_server_secrets['metrics-server.crt'] }}
   when: name not in metrics_secrets
   changed_when: no

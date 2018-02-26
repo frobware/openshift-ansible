@@ -56,7 +56,7 @@
 - name: Set metrics-server cluster role
   oc_obj:
     name: system:metrics-server
-    namespace: "{{ openshift_metrics_metrics_server_namespace }}"
+    namespace: "{{ openshift_metrics_metrics_server_project }}"
     kind: clusterrole
     files:
     - "{{ mktemp.stdout }}/templates/metrics-server-role.yaml"
@@ -80,7 +80,7 @@
     subjects:
     - kind: ServiceAccount
       name: metrics-server
-      namespace: "{{ openshift_metrics_metrics_server_namespace }}"
+      namespace: "{{ openshift_metrics_metrics_server_project }}"
   changed_when: no
 
 - name: generate auth-delegator role binding for the metrics-server service account
@@ -100,7 +100,7 @@
     subjects:
     - kind: ServiceAccount
       name: metrics-server
-      namespace: "{{ openshift_metrics_metrics_server_namespace }}"
+      namespace: "{{ openshift_metrics_metrics_server_project }}"
   changed_when: no
 
 - name: Generate service for metrics-server
@@ -109,7 +109,7 @@
     dest: "{{ mktemp.stdout }}/templates/metrics-{{obj_name}}-svc.yaml"
   vars:
     obj_name: metrics-server
-    namespace: "{{ openshift_metrics_metrics_server_namespace }}"
+    namespace: "{{ openshift_metrics_metrics_server_project }}"
     ports:
     - {port: 443, protocol: TCP, targetPort: https}
     selector:
@@ -122,11 +122,11 @@
         "Metrics-server"
   changed_when: no
 
-- name: Create metrics-server APIService
+- name: Create metrics-server api service
   template:
     src: metrics-server-apiservice.j2
     dest: "{{ mktemp.stdout }}/templates/metrics-server-apiservice.yaml"
   vars:
     obj_name: metrics-server-apiservice
-    namespace: "{{ openshift_metrics_metrics_server_namespace }}"
+    namespace: "{{ openshift_metrics_metrics_server_project }}"
   changed_when: no
