@@ -1,6 +1,4 @@
-{% if apiVersion: is defined %}
 apiVersion: v1
-{% endif %}
 kind: {% if cluster is defined and cluster %}Cluster{% endif %}RoleBinding
 metadata:
   name: {{obj_name}}

@@ -5,18 +5,21 @@
   include_tasks: "install_{{ include_file }}.yaml"
   with_items:
     - support
+    - heapster
+    - hawkular
+    - cassandra
     - metrics-server
   loop_control:
     loop_var: include_file
   when: not openshift_metrics_heapster_standalone | bool
 
-# - name: Install Heapster Standalone
-#   include_tasks: install_heapster.yaml
-#   when: openshift_metrics_heapster_standalone | bool
+- name: Install Heapster Standalone
+  include_tasks: install_heapster.yaml
+  when: openshift_metrics_heapster_standalone | bool
 
-# - name: Install Hawkular OpenShift Agent (HOSA)
-#   include_tasks: install_hosa.yaml
-#   when: openshift_metrics_install_hawkular_agent | default(false) | bool
+- name: Install Hawkular OpenShift Agent (HOSA)
+  include_tasks: install_hosa.yaml
+  when: openshift_metrics_install_hawkular_agent | default(false) | bool
 
 - find:
     paths: "{{ mktemp.stdout }}/templates"
@@ -70,25 +73,22 @@
     patterns: "^metrics-server.*.yaml"
     use_regex: true
   register: metrics_server_object_def_files
-  when: openshift_metrics_install_metrics_server_agent | bool
   changed_when: no
 
 - slurp:
     src: "{{item.path}}"
   register: metrics_server_agent_object_defs
   with_items: "{{ metrics_server_object_def_files.files }}"
-  when: openshift_metrics_install_metrics_server_agent | bool
   changed_when: no
 
-- name: Create Metrics_Server Agent objects
+- name: Create Metrics Server objects
   include_tasks: oc_apply.yaml
   vars:
     kubeconfig: "{{ mktemp.stdout }}/admin.kubeconfig"
-    namespace: "{{ openshift_metrics_metrics_server_agent_namespace }}"
+    namespace: "{{ openshift_metrics_project }}"
     file_name: "{{ item.source }}"
     file_content: "{{ item.content | b64decode | from_yaml }}"
   with_items: "{{ metrics_server_agent_object_defs.results }}"
-  when: openshift_metrics_install_metrics_server_agent | bool
 
 - include_tasks: update_master_config.yaml
   when: not openshift.common.version_gte_3_9
