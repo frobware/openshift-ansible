@@ -1,4 +1,0 @@
----
-- name: Uninstall Metrics Server XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-  command: rm -f /ms
-  gather_facts: no 

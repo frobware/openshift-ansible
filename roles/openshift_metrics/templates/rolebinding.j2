@@ -12,9 +12,6 @@ roleRef:
 {% if 'kind' in roleRef %}
   kind: {{ roleRef.kind }}
 {% endif %}
-{% if 'apiGroup' in roleRef %}
-  kind: {{ roleRef.apiGroup }}
-{% endif %}
   name: {{ roleRef.name }}
 subjects:
 {% for sub in subjects %}
