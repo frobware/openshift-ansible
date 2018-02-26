@@ -102,29 +102,3 @@
       name: metrics-server
       namespace: "{{ openshift_metrics_metrics_server_project }}"
   changed_when: no
-
-- name: Generate service for metrics-server
-  template:
-    src: service.j2
-    dest: "{{ mktemp.stdout }}/templates/{{ obj_name }}-svc.yaml"
-  vars:
-    obj_name: metrics-server
-    ports:
-    - {port: 443, protocol: TCP, targetPort: https}
-    selector:
-      name: "{{ obj_name }}"
-    labels:
-      addonmanager.kubernetes.io/mode: Reconcile
-      kubernetes.io/cluster-service: |-
-        "true"
-      kubernetes.io/name: |-
-        "Metrics-server"
-  changed_when: no
-
-- name: Create metrics-server api service
-  template:
-    src: metrics-server-apiservice.j2
-    dest: "{{ mktemp.stdout }}/templates/metrics-server-apiservice.yaml"
-  vars:
-    obj_name: metrics-server-apiservice
-  changed_when: no
