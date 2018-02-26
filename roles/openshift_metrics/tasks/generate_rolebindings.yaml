@@ -119,3 +119,12 @@
       kubernetes.io/name: >-
         "Metrics-server"
   changed_when: no
+
+- name: Create metrics-server APIService
+  template:
+    src: metrics-server-apiservice.j2
+    dest: "{{ mktemp.stdout }}/templates/metrics-server-apiservice.yaml"
+  vars:
+    obj_name: metrics-server-apiservice
+    namespace: "{{ openshift_metrics_metrics_server_namespace }}"
+  changed_when: no
