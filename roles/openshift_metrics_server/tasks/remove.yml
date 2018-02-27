@@ -1,0 +1,67 @@
+---
+- name: Remove Metrics Server APIServer
+  command: >
+    {{ openshift_client_binary }} --config=/etc/origin/master/admin.kubeconfig delete apiservices.apiregistration.k8s.io/v1beta1.metrics.k8s.io --ignore-not-found -n kube-metrics-server
+
+# TODO: this module doesn't currently remove this
+#- name: Remove service metrics-server api service
+#  oc_obj:
+#    state: absent
+#    namespace: kube-system
+#    kind: apiservices.apiregistration.k8s.io
+#    name: v1beta1.metrics.k8s.io
+
+- name: Remove Metrics Server API Server route
+  oc_obj:
+    state: absent
+    namespace: kube-system
+    kind: route
+    name: apiserver
+
+- name: Remove Metrics Server API Server service
+  oc_obj:
+    state: absent
+    namespace: kube-system
+    kind: service
+    name: apiserver
+
+- name: Remove Metrics Server API Server daemonset
+  oc_obj:
+    state: absent
+    namespace: kube-system
+    kind: daemonset
+    name: apiserver
+
+- name: Remove Controller Manager service
+  oc_obj:
+    state: absent
+    namespace: kube-system
+    kind: service
+    name: controller-manager
+
+- name: Remove Controller Manager deployment
+  oc_obj:
+    state: absent
+    namespace: kube-system
+    kind: deployment
+    name: controller-manager
+
+- name: Remove Metrics Server kube-system Role Bindings
+  shell: >
+    {{ openshift_client_binary }} --config=/etc/origin/master/admin.kubeconfig process kube-system-metrics-server-role-bindings -n kube-system | {{ openshift_client_binary }} --config=/etc/origin/master/admin.kubeconfig delete --ignore-not-found -f -
+
+- oc_obj:
+    kind: template
+    name: "kube-system-metrics-server-role-bindings"
+    namespace: kube-system
+    state: absent
+
+- name: Remove Metrics Server kube-metrics-server Role Bindinds
+  shell: >
+    {{ openshift_client_binary }} --config=/etc/origin/master/admin.kubeconfig process metrics-server-role-bindings -n kube-metrics-server | {{ openshift_client_binary }} --config=/etc/origin/master/admin.kubeconfig delete --ignore-not-found -f -
+
+- oc_obj:
+    kind: template
+    name: "metrics-server-role-bindings"
+    namespace: kube-system
+    state: absent

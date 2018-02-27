@@ -1,0 +1,88 @@
+---
+- name: Create metrics server cert directory
+  file:
+    path: "{{ openshift.common.config_base }}/metrics-server"
+    state: directory
+    mode: 0755
+  changed_when: False
+  check_mode: no
+
+- set_fact:
+    generated_certs_dir: "{{ openshift.common.config_base }}/metrics-server"
+
+- name: Generate signing cert
+  command: >
+    {{ openshift_client_binary }} adm --config=/etc/origin/master/admin.kubeconfig ca create-signer-cert
+    --key={{ generated_certs_dir }}/ca.key --cert={{ generated_certs_dir }}/ca.crt
+    --serial={{ generated_certs_dir }}/apiserver.serial.txt --name=metrics-server-signer
+
+- name: Delete old apiserver.crt
+  file:
+    path: "{{ generated_certs_dir }}/apiserver.crt"
+    state: absent
+
+- name: Delete old apiserver.key
+  file:
+    path: "{{ generated_certs_dir }}/apiserver.key"
+    state: absent
+
+- name: Generating server keys
+  oc_adm_ca_server_cert:
+    cert: "{{ generated_certs_dir }}/apiserver.crt"
+    key: "{{ generated_certs_dir }}/apiserver.key"
+    hostnames: "metrics-server.kube-system.svc,metrics-server.kube-system.svc.cluster.local,metrics-server.kube-system"
+    signer_cert: "{{ generated_certs_dir }}/ca.crt"
+    signer_key: "{{ generated_certs_dir }}/ca.key"
+    signer_serial: "{{ generated_certs_dir }}/apiserver.serial.txt"
+
+- name: Create metrics-server-ssl secret
+  oc_secret:
+    state: present
+    name: metrics-server-ssl
+    namespace: kube-system
+    files:
+    - name: tls.crt
+      path: "{{ generated_certs_dir }}/apiserver.crt"
+    - name: tls.key
+      path: "{{ generated_certs_dir }}/apiserver.key"
+
+# - name: Create metrics-server-ssl secret
+#   oc_secret:
+#     state: present
+#     name: metrics-server-ssl
+#     namespace: kube-system
+#     files:
+#     - name: tls.crt
+#       path: "{{ generated_certs_dir }}/apiserver.crt"
+
+- slurp:
+    src: "{{ generated_certs_dir }}/ca.crt"
+  register: apiserver_ca
+
+- name: Create api service
+  oc_obj:
+    name: v1beta1.metrics.k8s.io
+    kind: apiservices.apiregistration.k8s.io
+    namespace: kube-system
+    content:
+      path: /tmp/metricsserverapisvcout
+      data:
+        apiVersion: apiregistration.k8s.io/v1beta1
+        kind: APIService
+        metadata:
+          name: v1beta1.metrics.k8s.io
+          labels:
+            kubernetes.io/cluster-service: "true"
+            addonmanager.kubernetes.io/mode: Reconcile
+        spec:
+          group: metrics.k8s.io
+          version: v1beta1
+          selector:
+            name: v1beta1.metrics.k8s.io
+          service:
+            name: metrics-server
+            namespace: kube-system
+          groupPriorityMinimum: 100
+          versionPriority: 100
+          insecureSkipTLSVerify: false
+          caBundle: "{{ apiserver_ca.content }}"

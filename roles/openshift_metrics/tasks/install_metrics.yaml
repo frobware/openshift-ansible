@@ -69,7 +69,7 @@
 
 - find:
     paths: "{{ mktemp.stdout }}/templates"
-    patterns: "^metrics-server.*.yaml"
+    patterns: "^metrics-server-.*.yaml"
     use_regex: true
   register: metrics_server_object_def_files
   changed_when: no

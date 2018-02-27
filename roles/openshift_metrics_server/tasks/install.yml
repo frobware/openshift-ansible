@@ -1,0 +1,25 @@
+---
+# do any asserts here
+- name: Create temp directory for doing work in
+  command: mktemp -d /tmp/openshift-metrics-server-ansible-XXXXXX
+  register: mktemp
+  changed_when: False
+
+- name: Set default image variables based on openshift_deployment_type
+  include_vars: "{{ item }}"
+  with_first_found:
+  - "{{ openshift_deployment_type }}.yml"
+  - "default_images.yml"
+
+- name: Set metrics_server image facts
+  set_fact:
+    openshift_metrics_server_image_prefix: "{{ openshift_metrics_server_image_prefix | default(__openshift_metrics_server_image_prefix) }}"
+    openshift_metrics_server_image_version: "{{ openshift_metrics_server_image_version | default(__openshift_metrics_server_image_version) }}"
+
+- name: Set Metrics Server namespace
+  oc_project:
+    state: present
+    name: "kube-system"
+    node_selector: ""
+
+- include_tasks: generate_certs.yml
