@@ -10,7 +10,7 @@
   shell: >
     printf '%s: ' '{{ item }}'
     && base64 --wrap 0 '{{ mktemp.stdout }}/{{ item }}'
-  register: metrics_metrics_server_secrets
+  register: metrics_server_secrets
   with_items:
   - ca.crt
   - metrics-server.crt
@@ -19,8 +19,8 @@
   changed_when: false
 
 - set_fact:
-    metrics_metrics_server_secrets: |
-      {{ metrics_metrics_server_secrets.results|map(attribute='stdout')|join('
+    metrics_server_secrets: |
+      {{ metrics_server_secrets.results|map(attribute='stdout')|join('
       ')|from_yaml }}
 
 - slurp:
@@ -39,12 +39,12 @@
       service.alpha.openshift.io/originating-service-name: metrics-server
     data:
       tls.crt: >
-        {{ metrics_metrics_server_secrets['metrics-server.crt'] }}
+        {{ metrics_server_secrets['metrics-server.crt'] }}
       tls.key: >
-        {{ metrics_metrics_server_secrets['metrics-server.key'] }}
+        {{ metrics_server_secrets['metrics-server.key'] }}
       ca.crt: >
-        {{ metrics_metrics_server_secrets['ca.crt'] }}
-  when: name not in metrics_server_secrets.stdout_lines
+        {{ metrics_server_secrets['ca.crt'] }}
+  when: name not in existing_metrics_server_secrets.stdout_lines
   changed_when: no
 
 - name: Generate metrics-server apiservice

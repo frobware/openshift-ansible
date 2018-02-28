@@ -25,5 +25,5 @@
     {{ openshift_client_binary }} -n {{ openshift_metrics_metrics_server_project }}
     --config={{ mktemp.stdout }}/admin.kubeconfig
     get secrets -o name
-  register: metrics_server_secrets
+  register: existing_metrics_server_secrets
   changed_when: false
