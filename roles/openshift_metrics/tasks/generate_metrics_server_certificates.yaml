@@ -1,43 +1,105 @@
 ---
-- name: Create metrics server cert directory
-  file:
-    path: "{{ openshift.common.config_base }}/metrics-server"
-    state: directory
-    mode: 0755
-  changed_when: False
-  check_mode: no
+
+- name: generate metrics-server certificates
+  include_tasks: setup_certificate.yaml
+  vars:
+    component: metrics-server
+    hostnames: "metrics-server,metrics-server.{{ openshift_metrics_project }}.svc.cluster.local,{{ openshift_metrics_metrics_server_hostname }}"
+  changed_when: no
+
+- name: generate password for metrics_server metrics
+  local_action: copy dest="{{ local_tmp.stdout }}/{{ item }}.pwd" content="{{ 15 | lib_utils_oo_random_word }}"
+  with_items:
+  - metrics-server
+  become: false
+
+- local_action: slurp src="{{ local_tmp.stdout }}/metrics-server.pwd"
+  register: metrics_server_metrics_pwd
+  no_log: true
+  become: false
+
+- name: generate htpasswd file for metrics_server metrics
+  local_action: htpasswd path="{{ local_tmp.stdout }}/metrics-server.htpasswd" name=metrics_server password="{{ metrics_server_metrics_pwd.content | b64decode }}"
+  become: false
+
+- name: copy local generated passwords to target
+  copy:
+    src: "{{ local_tmp.stdout }}/{{ item }}"
+    dest: "{{ mktemp.stdout }}/{{ item }}"
+  with_items:
+  - metrics-server.pwd
+  - metrics-server.htpasswd
+
+- name: read files for the metrics-server secret
+  shell: >
+    printf '%s: ' '{{ item }}'
+    && base64 --wrap 0 '{{ mktemp.stdout }}/{{ item }}'
+  register: metrics_server_secrets
+  with_items:
+  - ca.crt
+  - metrics-server.pwd
+  - metrics-server.htpasswd
+  - metrics-server.crt
+  - metrics-server.key
+  - metrics-server.pem
+  changed_when: false
 
 - set_fact:
-    generated_certs_dir: "{{ openshift.common.config_base }}/metrics-server"
-
-- name: Generate signing cert
-  command: >
-    {{ openshift_client_binary }} adm --config=/etc/origin/master/admin.kubeconfig ca create-signer-cert
-    --key={{ generated_certs_dir }}/ca.key --cert={{ generated_certs_dir }}/ca.crt
-    --serial={{ generated_certs_dir }}/apiserver.serial.txt --name=metrics-server-signer
-
-- name: Delete old apiserver.crt
-  file:
-    path: "{{ generated_certs_dir }}/apiserver.crt"
-    state: absent
-
-- name: Delete old apiserver.key
-  file:
-    path: "{{ generated_certs_dir }}/apiserver.key"
-    state: absent
-
-- name: Generating server keys
-  oc_adm_ca_server_cert:
-    cert: "{{ generated_certs_dir }}/apiserver.crt"
-    key: "{{ generated_certs_dir }}/apiserver.key"
-    hostnames: "metrics-server.kube-system.svc,metrics-server.kube-system.svc.cluster.local,metrics-server.kube-system"
-    signer_cert: "{{ generated_certs_dir }}/ca.crt"
-    signer_key: "{{ generated_certs_dir }}/ca.key"
-    signer_serial: "{{ generated_certs_dir }}/apiserver.serial.txt"
+    metrics_server_secrets: |
+      {{ metrics_server_secrets.results|map(attribute='stdout')|join('
+      ')|from_yaml }}
 
 - slurp:
-    src: "{{ generated_certs_dir }}/ca.crt"
-  register: metrics_server_ca
+    src: "{{ mktemp.stdout }}/ca.crt"
+  register: apiserver_ca
+
+- name: generate metrics-server-certs secret template
+  template:
+    src: secret.j2
+    dest: "{{ mktemp.stdout }}/templates/metrics-server-certs.yaml"
+  vars:
+    name: metrics-server-certs
+    labels:
+      metrics-infra: metrics-server-certs
+    annotations:
+      service.alpha.openshift.io/originating-service-name: metrics-server
+    data:
+      tls.crt: >
+        {{ metrics_server_secrets['metrics-server.crt'] }}
+      tls.key: >
+        {{ metrics_server_secrets['metrics-server.key'] }}
+      ca.crt: >
+        {{ metrics_server_secrets['ca.crt'] }}
+  when: name not in metrics_secrets.stdout_lines
+  changed_when: no
+
+- name: generate metrics-server-account secret template
+  template:
+    src: secret.j2
+    dest: "{{ mktemp.stdout }}/templates/metrics-server_metrics_account.yaml"
+  vars:
+    name: metrics-server-account
+    labels:
+      metrics-infra: metrics-server
+    data:
+      metrics-server.username: "{{ 'metrics_server'|b64encode }}"
+      metrics-server.htpasswd: "{{ metrics_server_secrets['metrics-server.htpasswd'] }}"
+      metrics-server.password: >
+        {{ metrics_server_secrets['metrics-server.pwd'] }}
+  when: name not in metrics_secrets.stdout_lines
+  changed_when: no
+
+
+
+
+
+
+
+
+
+
+
+
 
 - name: Create api service
   oc_obj:
@@ -65,4 +127,4 @@
           groupPriorityMinimum: 100
           versionPriority: 100
           insecureSkipTLSVerify: false
-          caBundle: "{{ metrics_server_ca.content }}"
+          caBundle: "{{ apiserver_ca.content }}"
