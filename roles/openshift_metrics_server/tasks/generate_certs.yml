@@ -46,18 +46,9 @@
     - name: tls.key
       path: "{{ generated_certs_dir }}/apiserver.key"
 
-# - name: Create metrics-server-ssl secret
-#   oc_secret:
-#     state: present
-#     name: metrics-server-ssl
-#     namespace: kube-system
-#     files:
-#     - name: tls.crt
-#       path: "{{ generated_certs_dir }}/apiserver.crt"
-
 - slurp:
     src: "{{ generated_certs_dir }}/ca.crt"
-  register: apiserver_ca
+  register: metrics_server_ca
 
 - name: Create api service
   oc_obj:
@@ -85,4 +76,4 @@
           groupPriorityMinimum: 100
           versionPriority: 100
           insecureSkipTLSVerify: false
-          caBundle: "{{ apiserver_ca.content }}"
+          caBundle: "{{ metrics_server_ca.content }}"

@@ -22,10 +22,14 @@
 
 - find:
     paths: "{{ mktemp.stdout }}/templates"
-    patterns: "^(?!metrics-hawkular-openshift-agent).*.yaml"
+    patterns: "^(?!metrics-hawkular-openshift-agent|metrics-server-).*.yaml"
     use_regex: true
   register: object_def_files
   changed_when: no
+
+- debug:
+    msg: "{{ item.path|basename }}"
+  with_items: "{{object_def_files.files}}"
 
 - slurp:
     src: "{{item.path}}"
@@ -84,7 +88,7 @@
   include_tasks: oc_apply.yaml
   vars:
     kubeconfig: "{{ mktemp.stdout }}/admin.kubeconfig"
-    namespace: "{{ openshift_metrics_project }}"
+    namespace: "{{ openshift_metrics_metrics_server_project }}"
     file_name: "{{ item.source }}"
     file_content: "{{ item.content | b64decode | from_yaml }}"
   with_items: "{{ metrics_server_agent_object_defs.results }}"

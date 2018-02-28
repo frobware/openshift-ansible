@@ -70,6 +70,7 @@
     cluster: True
     obj_name: system:metrics-server
     labels:
+      metrics-infra: metrics-server
       kubernetes.io/cluster-service: |-
         "true"
       addonmanager.kubernetes.io/mode: Reconcile
@@ -90,6 +91,7 @@
   vars:
     obj_name: metrics-server:system:auth-delegator
     labels:
+      metrics-infra: metrics-server
       kubernetes.io/cluster-service: |-
         "true"
       addonmanager.kubernetes.io/mode: Reconcile
