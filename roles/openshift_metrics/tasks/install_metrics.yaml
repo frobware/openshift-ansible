@@ -8,6 +8,7 @@
     - heapster
     - hawkular
     - cassandra
+    - metrics_server
   loop_control:
     loop_var: include_file
   when: not openshift_metrics_heapster_standalone | bool

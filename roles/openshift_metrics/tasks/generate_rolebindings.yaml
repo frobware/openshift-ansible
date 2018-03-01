@@ -60,7 +60,7 @@
     kind: clusterrole
     files:
     - "{{ mktemp.stdout }}/templates/metrics-server-role.yaml"
-    delete_after: false
+    delete_after: true
 
 - name: generate resource-reader role binding for the metrics-server service account
   template:
