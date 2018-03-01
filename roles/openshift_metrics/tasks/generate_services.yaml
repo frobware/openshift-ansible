@@ -39,12 +39,8 @@
   vars:
     obj_name: metrics-server
     namespace: "{{ openshift_metrics_metrics_server_project }}"
-    ports:
-    - {port: 443, protocol: TCP, targetPort: https-endpoint}
-    selector:
-      name: "{{ obj_name }}"
     annotations:
-      service.alpha.openshift.io/serving-cert-secret-name: metrics-server-certs
+      service.alpha.openshift.io/serving-cert-secret-name: metrics-server-secret
     labels:
       metrics-infra: "{{ obj_name }}"
       addonmanager.kubernetes.io/mode: Reconcile
@@ -52,4 +48,8 @@
         "true"
       kubernetes.io/name: |-
         "Metrics-server"
+    ports:
+    - {port: 443, protocol: TCP, targetPort: https}
+    selector:
+      k8s-app: "{{ obj_name }}"
   changed_when: no
