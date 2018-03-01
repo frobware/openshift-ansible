@@ -40,7 +40,7 @@
     obj_name: metrics-server
     namespace: "{{ openshift_metrics_metrics_server_project }}"
     annotations:
-      service.alpha.openshift.io/serving-cert-secret-name: metrics-server-secret
+      service.alpha.openshift.io/serving-cert-secret-name: metrics-server-certs
     labels:
       metrics-infra: "{{ obj_name }}"
       addonmanager.kubernetes.io/mode: Reconcile
