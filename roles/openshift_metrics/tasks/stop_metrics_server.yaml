@@ -1,0 +1,19 @@
+---
+- command: >
+    {{openshift_client_binary}} --config={{mktemp.stdout}}/admin.kubeconfig
+    get deployment
+    -o name
+    -l k8s-app=metrics-server
+    -n {{openshift_metrics_metrics_server_project}}
+  register: metrics_metrics_server_rc
+
+- name: Stop Metrics Server
+  command: >
+    {{openshift_client_binary}} --config={{mktemp.stdout}}/admin.kubeconfig
+    -n {{openshift_metrics_metrics_server_project}}
+    delete {{object}}
+  with_items: "{{metrics_metrics_server_rc.stdout_lines}}"
+  loop_control:
+    loop_var: object
+  when: metrics_metrics_server_rc is defined
+  changed_when: metrics_metrics_server_rc | length > 0

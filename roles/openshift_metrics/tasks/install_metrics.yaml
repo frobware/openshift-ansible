@@ -8,7 +8,6 @@
     - heapster
     - hawkular
     - cassandra
-    - metrics_server
   loop_control:
     loop_var: include_file
   when: not openshift_metrics_heapster_standalone | bool
@@ -27,10 +26,6 @@
     use_regex: true
   register: object_def_files
   changed_when: no
-
-- debug:
-    msg: "{{ item.path|basename }}"
-  with_items: "{{object_def_files.files}}"
 
 - slurp:
     src: "{{item.path}}"
@@ -123,6 +118,9 @@
 - name: Scaling down cluster to recognize changes
   include_tasks: stop_metrics.yaml
   when: existing_metrics_rc.stdout_lines | length > 0
+
+- name: Scaling down cluster to recognize metrics-server changes
+  include_tasks: stop_metrics_server.yaml
 
 - name: Scaling up cluster
   include_tasks: start_metrics.yaml

@@ -64,3 +64,28 @@
   with_items: "{{metrics_heapster_rc.stdout_lines}}"
   loop_control:
     loop_var: object
+
+- name: Generate metrics-server deployment
+  template:
+    src: metrics-server-deployment.j2
+    dest: "{{ mktemp.stdout }}/templates/metrics-server-deployment.yaml"
+
+- find:
+    paths: "{{ mktemp.stdout }}/templates"
+    patterns: "^metrics-server-deployment.yaml"
+    use_regex: true
+  register: metrics_server_deployment_object_def_files
+
+- slurp:
+    src: "{{item.path}}"
+  register: metrics_server_deployment_object_def_files
+  with_items: "{{ metrics_server_deployment_object_def_files.files }}"
+
+- name: Create Metrics Server objects
+  include_tasks: oc_apply.yaml
+  vars:
+    kubeconfig: "{{ mktemp.stdout }}/admin.kubeconfig"
+    namespace: "{{ openshift_metrics_metrics_server_project }}"
+    file_name: "{{ item.source }}"
+    file_content: "{{ item.content | b64decode | from_yaml }}"
+  with_items: "{{ metrics_server_deployment_object_def_files.results }}"

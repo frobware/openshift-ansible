@@ -53,15 +53,6 @@
     dest: "{{ mktemp.stdout }}/templates/metrics-server-role.yaml"
   changed_when: no
 
-- name: Set metrics-server cluster role
-  oc_obj:
-    name: system:metrics-server
-    namespace: "{{ openshift_metrics_metrics_server_project }}"
-    kind: clusterrole
-    files:
-    - "{{ mktemp.stdout }}/templates/metrics-server-role.yaml"
-    delete_after: true
-
 - name: generate auth-delegator role binding for the metrics-server service account
   template:
     src: metrics-server-rolebinding.j2
