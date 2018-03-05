@@ -1,6 +1,7 @@
 ---
 - name: stop metrics
   include_tasks: stop_metrics.yaml
+  include_tasks: stop_metrics_server.yaml
 
 - name: remove metrics components
   command: >
