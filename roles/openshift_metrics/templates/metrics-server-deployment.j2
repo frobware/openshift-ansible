@@ -2,7 +2,7 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: metrics-server-v0.2.1
-  namespace: kube-system
+  namespace: {{ openshift_metrics_metrics_server_project }}
   labels:
     k8s-app: metrics-server
     kubernetes.io/cluster-service: "true"
