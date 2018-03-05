@@ -6,7 +6,7 @@
     hostnames: "metrics-server,metrics-server.{{ openshift_metrics_metrics_server_project }}.svc,metrics-server.{{ openshift_metrics_metrics_server_project }}.svc.cluster.local,{{ openshift_metrics_metrics_server_hostname }}"
   changed_when: no
 
-- name: read files for the metrics-server-ssl secret
+- name: read files for the metrics-server-apiserver-ssl secret
   shell: >
     printf '%s: ' '{{ item }}'
     && base64 --wrap 0 '{{ mktemp.stdout }}/{{ item }}'
@@ -30,9 +30,9 @@
 - name: generate metrics-server secret template
   template:
     src: secret.j2
-    dest: "{{ mktemp.stdout }}/templates/metrics-server-ssl.yaml"
+    dest: "{{ mktemp.stdout }}/templates/metrics-server-apiserver-ssl.yaml"
   vars:
-    name: metrics-server-ssl
+    name: metrics-server-apiserver-ssl
     labels:
       metrics-infra: metrics-server
     data:
