@@ -115,12 +115,20 @@
   register: existing_metrics_rc
   changed_when: no
 
+- command: >
+    {{openshift_client_binary}}
+    --config={{mktemp.stdout}}/admin.kubeconfig
+    get deployment
+    -l k8s-app=metrics-server
+    -o name
+    -n {{openshift_metrics_metrics_server_project}}
+  register: existing_metrics_server_rc
+  changed_when: no
+
 - name: Scaling down cluster to recognize changes
   include_tasks: stop_metrics.yaml
-  when: existing_metrics_rc.stdout_lines | length > 0
-
-- name: Scaling down cluster to recognize metrics-server changes
-  include_tasks: stop_metrics_server.yaml
+  when: (existing_metrics_rc.stdout_lines | length > 0) or
+        (existing_metrics_server_rc.stdout_lines | length > 0)
 
 - name: Scaling up cluster
   include_tasks: start_metrics.yaml
