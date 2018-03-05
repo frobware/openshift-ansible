@@ -1,5 +1,5 @@
 ---
-openshift_metrics_start_cluster: False
+openshift_metrics_start_cluster: True
 openshift_metrics_install_metrics: False
 openshift_metrics_startup_timeout: 500
 

@@ -1,7 +1,6 @@
 ---
 - name: stop metrics
   include_tasks: stop_metrics.yaml
-  include_tasks: stop_metrics_server.yaml
 
 - name: remove metrics components
   command: >
@@ -15,7 +14,7 @@
   command: >
     {{ openshift_client_binary }} -n {{ openshift_metrics_metrics_server_project }} --config={{ mktemp.stdout }}/admin.kubeconfig
     delete --ignore-not-found --selector=metrics-infra
-    all,sa,secrets,templates,rolebindings,clusterrolebindings,clusterrole
+    all,apiservice,sa,secrets,templates,rolebindings,clusterrolebindings,clusterrole,deployment
   register: delete_metrics
   changed_when: delete_metrics.stdout != 'No resources found'
 
