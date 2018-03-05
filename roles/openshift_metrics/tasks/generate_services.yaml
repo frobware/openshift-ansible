@@ -45,6 +45,7 @@
         "true"
       kubernetes.io/name: |-
         "Metrics-server"
+      metrics-infra: support
     ports:
     - {port: 443, protocol: TCP, targetPort: https}
     selector:
