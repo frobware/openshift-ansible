@@ -35,10 +35,10 @@
     signer_key: "{{ generated_certs_dir }}/ca.key"
     signer_serial: "{{ generated_certs_dir }}/apiserver.serial.txt"
 
-- name: Create metrics-apiserver-ssl secret
+- name: Create metrics-server-apiserver-ssl secret
   oc_secret:
     state: present
-    name: metrics-apiserver-ssl
+    name: metrics-server-apiserver-ssl
     namespace: kube-system
     files:
     - name: tls.crt

@@ -6,7 +6,7 @@
     hostnames: "metrics-server,metrics-server.{{ openshift_metrics_metrics_server_project }}.svc,metrics-server.{{ openshift_metrics_metrics_server_project }}.svc.cluster.local,{{ openshift_metrics_metrics_server_hostname }}"
   changed_when: no
 
-- name: read files for the metrics-server secret
+- name: read files for the metrics-server-apiserver-ssl secret
   shell: >
     printf '%s: ' '{{ item }}'
     && base64 --wrap 0 '{{ mktemp.stdout }}/{{ item }}'
@@ -27,25 +27,35 @@
     src: "{{ mktemp.stdout }}/ca.crt"
   register: apiserver_ca
 
-- name: generate metrics-server-certs secret template
+- name: generate metrics-server secret template
   template:
     src: secret.j2
-    dest: "{{ mktemp.stdout }}/templates/metrics-server-certs.yaml"
+    dest: "{{ mktemp.stdout }}/templates/metrics-server-apiserver-ssl.yaml"
   vars:
-    name: metrics-server-certs
+    name: metrics-server-apiserver-ssl
     labels:
-      metrics-infra: metrics-server-certs
-    annotations:
-      service.alpha.openshift.io/originating-service-name: metrics-server
+      metrics-infra: metrics-server
     data:
       tls.crt: >
         {{ metrics_server_secrets['metrics-server.crt'] }}
       tls.key: >
         {{ metrics_server_secrets['metrics-server.key'] }}
-      ca.crt: >
-        {{ metrics_server_secrets['ca.crt'] }}
   when: name not in existing_metrics_server_secrets.stdout_lines
   changed_when: no
+
+- name: Generate metrics-server apiservice
+  template:
+    src: metrics-server-apiservice.j2
+    dest: "{{ mktemp.stdout }}/templates/{{ obj_name }}-apiservice.yaml"
+  vars:
+    obj_name: metrics-server
+    namespace: "{{ openshift_metrics_metrics_server_project }}"
+    caBundle: "{{ apiserver_ca.content }}"
+  changed_when: no
+
+- slurp:
+    src: "{{ mktemp.stdout }}/ca.crt"
+  register: apiserver_ca
 
 - name: Generate metrics-server apiservice
   template:
