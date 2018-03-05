@@ -1,14 +1,14 @@
 ---
 - name: Create metrics server cert directory
   file:
-    path: "{{ openshift.common.config_base }}/metrics-server"
+    path: "{{ mktemp.stdout }}/certs-metrics-server"
     state: directory
     mode: 0755
   changed_when: False
   check_mode: no
 
 - set_fact:
-    generated_certs_dir: "{{ openshift.common.config_base }}/metrics-server"
+    generated_certs_dir: "{{ mktemp.stdout }}/certs-metrics-server"
 
 - name: Generate signing cert
   command: >
@@ -45,15 +45,6 @@
       path: "{{ generated_certs_dir }}/apiserver.crt"
     - name: tls.key
       path: "{{ generated_certs_dir }}/apiserver.key"
-
-- name: Create metrics-server-ssl secret
-  oc_secret:
-    state: present
-    name: metrics-server-ssl
-    namespace: kube-system
-    files:
-    - name: tls.crt
-      path: "{{ generated_certs_dir }}/apiserver.crt"
 
 - slurp:
     src: "{{ generated_certs_dir }}/ca.crt"
