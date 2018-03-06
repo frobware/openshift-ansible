@@ -1,25 +1,25 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: metrics-server-v0.2.1
+  name: metrics-server
   namespace: "{{ openshift_metrics_server_project }}"
   labels:
     k8s-app: metrics-server
     kubernetes.io/cluster-service: "true"
     addonmanager.kubernetes.io/mode: Reconcile
-    version: v0.2.1
+    version: "{{openshift_metrics_server_version}}"
     metrics-infra: metrics-server
 spec:
   selector:
     matchLabels:
       k8s-app: metrics-server
-      version: v0.2.1
+      version: "{{openshift_metrics_server_version}}"
   template:
     metadata:
       name: metrics-server
       labels:
         k8s-app: metrics-server
-        version: v0.2.1
+        version: "{{openshift_metrics_server_version}}"
       annotations:
         scheduler.alpha.kubernetes.io/critical-pod: ''
     spec:
@@ -27,7 +27,7 @@ spec:
       serviceAccountName: metrics-server
       containers:
       - name: metrics-server
-        image: k8s.gcr.io/metrics-server-amd64:v0.2.1
+        image: "k8s.gcr.io/metrics-server-amd64:{{openshift_metrics_server_version}}"
         command:
           - /metrics-server
           - "--source=kubernetes.summary_api:?useServiceAccount=true&kubeletHttps=true&kubeletPort=10250"
