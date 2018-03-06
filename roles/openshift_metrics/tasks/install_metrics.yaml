@@ -110,7 +110,7 @@
     file_name: "{{ item.source }}"
     file_content: "{{ item.content | b64decode | from_yaml }}"
   with_items: "{{ apiextension_object_defs.results }}"
-  
+
 - include_tasks: update_master_config.yaml
   when: not openshift.common.version_gte_3_9
 
