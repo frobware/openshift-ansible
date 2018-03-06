@@ -2,6 +2,9 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: {% if cluster is defined and cluster %}Cluster{% endif %}RoleBinding
 metadata:
   name: {{ obj_name }}
+{% if project is defined %}
+  namespace: {{ project }}
+{% endif %}
 {% if labels is defined %}
   labels:
 {% for k, v in labels.items() %}

@@ -75,13 +75,13 @@
       namespace: "{{ openshift_metrics_server_project }}"
   changed_when: no
 
-- name: generate auth-reader role binding for the metrics-server service account
+- name: generate auth-reader role binding for the metrics-server api extension server
   template:
     src: metrics-server-rolebinding.j2
-    dest: "{{ mktemp.stdout }}/templates/metrics-server-auth-reader-rolebinding.yaml"
+    dest: "{{ mktemp.stdout }}/templates/extension-apiserver-authentication-reader-metrics-server-rolebinding.yaml"
   vars:
     obj_name: metrics-server-auth-reader
-    namespace: "{{ openshift_metrics_server_project }}"
+    project: kube-system
     labels:
       kubernetes.io/cluster-service: >-
         "true"
