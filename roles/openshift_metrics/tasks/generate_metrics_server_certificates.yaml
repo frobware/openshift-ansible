@@ -12,10 +12,8 @@
     && base64 --wrap 0 '{{ mktemp.stdout }}/{{ item }}'
   register: metrics_server_secrets
   with_items:
-  - ca.crt
   - metrics-server.crt
   - metrics-server.key
-  - metrics-server.pem
   changed_when: false
 
 - set_fact:
