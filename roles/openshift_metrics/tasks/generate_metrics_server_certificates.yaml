@@ -3,7 +3,7 @@
   include_tasks: setup_certificate.yaml
   vars:
     component: metrics-server
-    hostnames: "metrics-server,metrics-server.{{ openshift_metrics_metrics_server_project }}.svc,metrics-server.{{ openshift_metrics_metrics_server_project }}.svc.cluster.local,{{ openshift_metrics_metrics_server_hostname }}"
+    hostnames: "metrics-server,metrics-server.{{ openshift_metrics_server_project }}.svc,metrics-server.{{ openshift_metrics_server_project }}.svc.cluster.local,{{ openshift_metrics_server_hostname }}"
   changed_when: no
 
 - name: read files for the metrics-server-apiserver-ssl secret
@@ -49,7 +49,7 @@
     dest: "{{ mktemp.stdout }}/templates/{{ obj_name }}-apiservice.yaml"
   vars:
     obj_name: metrics-server
-    namespace: "{{ openshift_metrics_metrics_server_project }}"
+    namespace: "{{ openshift_metrics_server_project }}"
     caBundle: "{{ apiserver_ca.content }}"
     labels:
       metrics-infra: metrics-server

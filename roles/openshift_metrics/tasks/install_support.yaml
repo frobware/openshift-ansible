@@ -22,7 +22,7 @@
 - name: Set metrics server namespace
   oc_project:
     state: present
-    name: "{{ openshift_metrics_metrics_server_project }}"
+    name: "{{ openshift_metrics_server_project }}"
     node_selector: ""
 
 - include_tasks: generate_certificates.yaml

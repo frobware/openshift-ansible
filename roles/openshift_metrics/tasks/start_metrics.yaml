@@ -85,7 +85,7 @@
   include_tasks: oc_apply.yaml
   vars:
     kubeconfig: "{{ mktemp.stdout }}/admin.kubeconfig"
-    namespace: "{{ openshift_metrics_metrics_server_project }}"
+    namespace: "{{ openshift_metrics_server_project }}"
     file_name: "{{ item.source }}"
     file_content: "{{ item.content | b64decode | from_yaml }}"
   with_items: "{{ metrics_server_deployment_object_def_files.results }}"

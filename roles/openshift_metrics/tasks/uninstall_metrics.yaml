@@ -34,7 +34,7 @@
 
 - name: remove metrics server components
   command: >
-    {{ openshift_client_binary }} -n {{ openshift_metrics_metrics_server_project }} --config={{ mktemp.stdout }}/admin.kubeconfig
+    {{ openshift_client_binary }} -n {{ openshift_metrics_server_project }} --config={{ mktemp.stdout }}/admin.kubeconfig
     delete --ignore-not-found --selector=metrics-infra
     all,sa,secrets,rolebindings,clusterrolebindings,clusterrole,apiservice,deployment
   register: delete_metrics

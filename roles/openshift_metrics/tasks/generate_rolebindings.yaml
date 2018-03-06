@@ -72,7 +72,7 @@
     subjects:
     - kind: ServiceAccount
       name: metrics-server
-      namespace: "{{ openshift_metrics_metrics_server_project }}"
+      namespace: "{{ openshift_metrics_server_project }}"
   changed_when: no
 
 - name: generate auth-reader role binding for the metrics-server service account
@@ -81,7 +81,7 @@
     dest: "{{ mktemp.stdout }}/templates/metrics-server-auth-reader-rolebinding.yaml"
   vars:
     obj_name: metrics-server-auth-reader
-    namespace: "{{ openshift_metrics_metrics_server_project }}"
+    namespace: "{{ openshift_metrics_server_project }}"
     labels:
       kubernetes.io/cluster-service: >-
         "true"
@@ -94,7 +94,7 @@
     subjects:
     - kind: ServiceAccount
       name: metrics-server
-      namespace: "{{ openshift_metrics_metrics_server_project }}"
+      namespace: "{{ openshift_metrics_server_project }}"
   changed_when: no
 
 - name: generate resource-reader role binding for the metrics-server service account
@@ -116,5 +116,5 @@
     subjects:
     - kind: ServiceAccount
       name: metrics-server
-      namespace: "{{ openshift_metrics_metrics_server_project }}"
+      namespace: "{{ openshift_metrics_server_project }}"
   changed_when: no

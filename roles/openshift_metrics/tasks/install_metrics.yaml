@@ -84,7 +84,7 @@
   include_tasks: oc_apply.yaml
   vars:
     kubeconfig: "{{ mktemp.stdout }}/admin.kubeconfig"
-    namespace: "{{ openshift_metrics_metrics_server_project }}"
+    namespace: "{{ openshift_metrics_server_project }}"
     file_name: "{{ item.source }}"
     file_content: "{{ item.content | b64decode | from_yaml }}"
   with_items: "{{ metrics_server_agent_object_defs.results }}"
@@ -121,7 +121,7 @@
     get deployment
     -l k8s-app=metrics-server
     -o name
-    -n {{openshift_metrics_metrics_server_project}}
+    -n {{openshift_metrics_server_project}}
   register: existing_metrics_server_rc
   changed_when: no
 
