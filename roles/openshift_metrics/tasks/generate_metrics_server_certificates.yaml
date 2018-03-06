@@ -3,7 +3,7 @@
   include_tasks: setup_certificate.yaml
   vars:
     component: metrics-server
-    hostnames: "metrics-server,metrics-server.{{ openshift_metrics_server_project }}.svc,metrics-server.{{ openshift_metrics_server_project }}.svc.cluster.local,{{ openshift_metrics_server_hostname }}"
+    hostnames: "metrics-server,metrics-server.{{ openshift_metrics_server_project }}.svc,metrics-server.{{ openshift_metrics_server_project }}.svc.cluster.local"
   changed_when: no
 
 - name: read files for the metrics-server-certs secret
