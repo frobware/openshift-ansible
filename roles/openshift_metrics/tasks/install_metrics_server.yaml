@@ -1,5 +1,0 @@
-- name: Generate metrics-server deployment
-  template:
-    src: metrics-server-deployment.j2
-    dest: "{{ mktemp.stdout }}/templates/metrics-server-deployment.yaml"
-  changed_when: false
