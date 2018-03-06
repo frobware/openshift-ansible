@@ -41,11 +41,11 @@ spec:
           name: https
           protocol: TCP
         volumeMounts:
-        - name: metrics-server-apiserver-ssl
+        - name: metrics-server-certs
           mountPath: /certs
           readOnly: true
       volumes:
-      - name: metrics-server-apiserver-ssl
+      - name: metrics-server-certs
         secret:
           defaultMode: 420
-          secretName: metrics-server-apiserver-ssl
+          secretName: metrics-server-certs
